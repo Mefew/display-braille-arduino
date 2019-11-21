@@ -6,7 +6,7 @@ int num_of_symbols_in_current_line = 0;
 uint8_t* symbols_received;
 
 //Settings
-int line_size = 0;
+int line_size = 0, baud_rate = 0;
 bool activation_value = true;
 
 const int BUTTON_ADVANCE_PIN = 2;
@@ -116,27 +116,13 @@ void processOrder (Order order) {
   
   if (order == SENDING_SETTINGS) {
     write_order(RECEIVED);
-    for (int i = 0; i < 2; i++) {
-      int message = waitForMessage(TIMEOUT_DEFAULT);
-      if (i==0)  {
-        //Number of symbols to display per line. Maximum of 255
-        line_size = message;
-        symbols_received = (uint8_t*) malloc (line_size * sizeof(uint8_t));
-        if (symbols_received == NULL) {
-          write_order(DEBUG_MESSAGE);
-          Serial.println("Could not allocate memory for symbols_received using malloc()");
-        }
-        write_order(RECEIVED);
-      }
-      if (i==1) {
-        //Decides if the Braille dots are activated on high or low electric values. False means: Low = Active. True means: High = Active
-        if (message == 0)
-          activation_value = false;
-        write_order(RECEIVED);
-      }
+    line_size = waitForMessage(TIMEOUT_DEFAULT);
+    write_order(RECEIVED);
+    symbols_received = (uint8_t*) malloc (line_size * sizeof(uint8_t));
+    if (symbols_received == NULL) {
+        write_order(DEBUG_MESSAGE);
+        Serial.println("Could not allocate memory for symbols_received using malloc()");
     }
-    
-    
   }
   
   else if (order == SENDING_SYMBOLS) {
